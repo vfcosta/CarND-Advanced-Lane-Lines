@@ -14,6 +14,8 @@ class Camera:
         self.tvecs = None
         self.perspective_matrix = None
         self.inverse_perspective_matrix = None
+        self.perspective_source_points = None
+        self.perspective_dest_points = None
 
     def calibrate(self, path="../camera_cal/*.jpg", corners_x=9, corners_y=6, ignore_missing=False):
         objpoints, imgpoints, self.shape = self.detect_image_points(path, corners_x=corners_x, corners_y=corners_y, ignore_missing=ignore_missing)
@@ -29,6 +31,8 @@ class Camera:
             dest_points = np.float32([(offset_x, offset_y), (image.shape[1] - offset_x, offset_y),
                                       (image.shape[1] - offset_x, image.shape[0]), (offset_x, image.shape[0])])
 
+        self.perspective_source_points = source_points
+        self.perspective_dest_points = dest_points
         self.perspective_matrix = cv2.getPerspectiveTransform(source_points, dest_points)
         self.inverse_perspective_matrix = cv2.getPerspectiveTransform(dest_points, source_points)
 

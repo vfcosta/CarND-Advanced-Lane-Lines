@@ -19,7 +19,7 @@ def detect_perspective(camera):
     if camera.perspective_matrix is not None:
         return
     print("detect perspective")
-    image = cv2.imread("../output_images/straight_lines1_perspective.jpg")
+    image = cv2.imread("../test_images/straight_lines1.jpg")
     source_points = [(581, 461), (703, 461), (1064, 692), (245, 692)]
     camera.detect_perspective(image, source_points=np.float32(source_points))
     camera.save()
