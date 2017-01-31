@@ -1,7 +1,5 @@
 import cv2
 import numpy as np
-from lanelines.camera import Camera
-import os
 
 
 class Detector:
@@ -51,15 +49,3 @@ class Detector:
         binary_output = np.zeros_like(image)
         binary_output[(image > thresh[0]) & (image < thresh[1])] = 1
         return binary_output
-
-if __name__ == '__main__':
-    detector = Detector()
-    for image_name in os.listdir("../test_images/"):
-        image_name = image_name.replace('.jpg', '')
-        image = cv2.imread('../test_images/'+image_name+'.jpg')
-        camera = Camera.load()
-        undistorted = camera.undistort(image)
-        binarized = detector.binarize(undistorted)
-        cv2.imwrite("../output_images/" + image_name + "_undistored.jpg", undistorted)
-        cv2.imwrite("../output_images/" + image_name + "_binarized.jpg", binarized*255)
-

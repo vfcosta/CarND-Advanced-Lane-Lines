@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import glob
 import pickle
-import os.path
 
 
 class Camera:
@@ -103,32 +102,3 @@ class Camera:
             if not ignore_missing and corners is None:
                 raise Exception("can't find corners for " + filename)
         return objpoints, imgpoints, shape
-
-
-if __name__ == '__main__':
-    if not os.path.exists("camera.p"):
-        camera = Camera()
-        camera.calibrate()
-        camera.save()
-
-    camera = Camera.load()
-    for image_name, corners in [("calibration1", (9, 5)), ("calibration2", (8, 6)), ("calibration4", (6, 5))]:
-        print("undistort", image_name)
-        image = cv2.imread("../camera_cal/"+image_name+".jpg")
-        chess = Camera.draw_chessboard(image.copy(), corners_x=corners[0], corners_y=corners[1])
-        undistorted = camera.undistort(image)
-        cv2.imwrite("../output_images/"+image_name+"_chessboard.jpg", chess)
-        cv2.imwrite("../output_images/"+image_name+"_undistorted.jpg", undistorted)
-
-    if camera.perspective_matrix is None:
-        print("detect perspective")
-        image = cv2.imread("../output_images/straight_lines1_perspective.jpg")
-        source_points = [(581, 461), (703, 461), (1064, 692), (245, 692)]
-        camera.detect_perspective(image, source_points=np.float32(source_points))
-        camera.save()
-
-    for filename in ["../output_images/straight_lines1_perspective.jpg", "../test_images/test2.jpg"]:
-        print("unwarp", filename)
-        output_filename = filename.replace("test_images", "output_images").replace(".jpg", "_unwarped.jpg")
-        image = cv2.imread(filename)
-        cv2.imwrite(output_filename, camera.unwarp(camera.undistort(image)))
