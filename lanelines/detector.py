@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from lanelines.camera import Camera
+import os
 
 
 class Detector:
@@ -10,20 +10,21 @@ class Detector:
         pass
 
     def binarize(self, image, sobel_kernel=5):
-        # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        combined = np.zeros(image.shape[:2])
+
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
-        channel = hls[:, :, 2]
+        s_channel = hls[:, :, 2]
 
-        # Apply each of the thresholding functions
-        gradx = self.abs_sobel_thresh(channel, orient='x', sobel_kernel=sobel_kernel, thresh=(20, 100))
-        grady = self.abs_sobel_thresh(channel, orient='y', sobel_kernel=sobel_kernel, thresh=(20, 100))
-        mag_binary = self.mag_thresh(channel, sobel_kernel=sobel_kernel, thresh=(30, 100))
-        dir_binary = self.dir_threshold(channel, sobel_kernel=sobel_kernel, thresh=(0.7, 1.3))
+        for channel in [gray, s_channel]:
+            # Apply each of the thresholding functions
+            gradx = self.abs_sobel_thresh(channel, orient='x', sobel_kernel=sobel_kernel, thresh=(20, 150))
+            grady = self.abs_sobel_thresh(channel, orient='y', sobel_kernel=sobel_kernel, thresh=(20, 150))
+            mag_binary = self.mag_thresh(channel, sobel_kernel=sobel_kernel, thresh=(30, 150))
+            dir_binary = self.dir_threshold(channel, sobel_kernel=sobel_kernel, thresh=(0.7, 1.3))
+            combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
 
-        combined = np.zeros_like(dir_binary)
-        combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
-        plt.imshow(combined, cmap='gray')
-        plt.show()
+        return combined
 
     def abs_sobel_thresh(self, img, orient='x', sobel_kernel=3, thresh=(0, 255)):
         sobel = cv2.Sobel(img, cv2.CV_64F, 1 if orient == 'x' else 0, 1 if orient == 'y' else 0, ksize=sobel_kernel)
@@ -53,6 +54,12 @@ class Detector:
 
 if __name__ == '__main__':
     detector = Detector()
-    image = cv2.imread('../test_images/test5.jpg')
-    camera = Camera.load()
-    detector.binarize(camera.undistort(image))
+    for image_name in os.listdir("../test_images/"):
+        image_name = image_name.replace('.jpg', '')
+        image = cv2.imread('../test_images/'+image_name+'.jpg')
+        camera = Camera.load()
+        undistorted = camera.undistort(image)
+        binarized = detector.binarize(undistorted)
+        cv2.imwrite("../output_images/" + image_name + "_undistored.jpg", undistorted)
+        cv2.imwrite("../output_images/" + image_name + "_binarized.jpg", binarized*255)
+
