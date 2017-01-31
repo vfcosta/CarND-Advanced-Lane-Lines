@@ -36,11 +36,16 @@ def undistort_sample_images(camera):
 
 
 def unwarp_sample_images(camera):
-    for filename in ["../output_images/straight_lines1_perspective.jpg", "../test_images/test2.jpg"]:
-        print("unwarp", filename)
-        output_filename = filename.replace("test_images", "output_images").replace(".jpg", "_unwarped.jpg")
-        image = cv2.imread(filename)
-        cv2.imwrite(output_filename, camera.unwarp(camera.undistort(image)))
+    for i, image_name in enumerate(["straight_lines1", "test2"]):
+        print("unwarp", image_name)
+        image = cv2.imread("../test_images/"+image_name+".jpg")
+        unwarped = camera.unwarp(camera.undistort(image))
+        if i == 0:
+            cv2.polylines(image, np.int32([camera.perspective_source_points]), 1, (0, 0, 255), 5)
+            cv2.imwrite("../output_images/" + image_name + "_perspective.jpg", image)
+            cv2.polylines(unwarped, np.int32([camera.perspective_dest_points]), 1, (0, 0, 255), 5)
+
+        cv2.imwrite("../output_images/"+image_name+"_unwarped.jpg", unwarped)
 
 
 def binarize_sample_images(detector):
