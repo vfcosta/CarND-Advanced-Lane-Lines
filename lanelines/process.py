@@ -66,10 +66,19 @@ def generate_histogram(detector):
     for i, image_name in enumerate(["straight_lines1", "test2"]):
         print("histogram", image_name)
         image = cv2.imread("../test_images/"+image_name+".jpg")
-        histogram = detector.histogram(image)
+        histogram, top_down = detector.histogram(image)
         plt.clf()
         plt.plot(histogram)
         plt.savefig("../output_images/" + image_name + "_histogram.jpg")
+
+
+def detect_lane_lines(detector):
+    for image_name in os.listdir("../test_images/"):
+        print("detect lane lines", image_name)
+        image_name = image_name.replace('.jpg', '')
+        image = cv2.imread("../test_images/"+image_name+".jpg")
+        lines_image = detector.detect(image)
+        cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
 
 
 def execute():
@@ -81,6 +90,7 @@ def execute():
     top_down_sample_images(camera)
     binarize_sample_images(camera, binarizer)
     generate_histogram(detector)
+    detect_lane_lines(detector)
 
 
 if __name__ == '__main__':
