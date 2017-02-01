@@ -15,7 +15,10 @@ class Detector:
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
         print(leftx_base, rightx_base)
 
-    def histogram(self, image):
+    def histogram(self, image, bin_width=None):
         binarized = self.binarizer.binarize(self.camera.undistort(image))
         top_down = self.camera.to_top_down(binarized)
-        return np.mean(top_down[top_down.shape[0] // 2:, :], axis=0)
+        hist = np.mean(top_down[top_down.shape[0] // 2:, :], axis=0)
+        if bin_width:
+            return np.histogram(range(hist.shape[0]), bins=hist.shape[0]//bin_width, weights=hist)[0]
+        return hist
