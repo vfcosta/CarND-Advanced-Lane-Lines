@@ -1,9 +1,10 @@
 import numpy as np
 import cv2
 import os.path
+import matplotlib.pyplot as plt
 from lanelines.camera import Camera
 from lanelines.detector import Detector
-import matplotlib.pyplot as plt
+from lanelines.binarizer import Binarizer
 
 
 def calibrate_camera():
@@ -49,13 +50,13 @@ def top_down_sample_images(camera):
         cv2.imwrite("../output_images/"+image_name+"_top_down.jpg", top_down)
 
 
-def binarize_sample_images(detector):
+def binarize_sample_images(binarizer):
     for image_name in os.listdir("../test_images/"):
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread('../test_images/'+image_name+'.jpg')
         camera = Camera.load()
         undistorted = camera.undistort(image)
-        binarized = detector.binarize(undistorted)
+        binarized = binarizer.binarize(undistorted)
         cv2.imwrite("../output_images/" + image_name + "_undistored.jpg", undistorted)
         cv2.imwrite("../output_images/" + image_name + "_binarized.jpg", binarized*255)
 
@@ -65,6 +66,7 @@ def generate_histogram(detector):
         print("histogram", image_name)
         image = cv2.imread("../test_images/"+image_name+".jpg")
         histogram = detector.histogram(image)
+        detector.detect(image)
         plt.clf()
         plt.plot(histogram)
         plt.savefig("../output_images/" + image_name + "_histogram.jpg")
@@ -72,11 +74,12 @@ def generate_histogram(detector):
 
 def execute():
     camera = calibrate_camera()
+    binarizer = Binarizer()
     detector = Detector(camera)
     undistort_sample_images(camera)
     detect_perspective(camera)
     top_down_sample_images(camera)
-    binarize_sample_images(detector)
+    binarize_sample_images(binarizer)
     generate_histogram(detector)
 
 
