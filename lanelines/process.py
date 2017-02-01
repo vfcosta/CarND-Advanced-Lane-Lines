@@ -50,7 +50,7 @@ def top_down_sample_images(camera):
         cv2.imwrite("../output_images/"+image_name+"_top_down.jpg", top_down)
 
 
-def binarize_sample_images(binarizer):
+def binarize_sample_images(camera, binarizer):
     for image_name in os.listdir("../test_images/"):
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread('../test_images/'+image_name+'.jpg')
@@ -59,6 +59,7 @@ def binarize_sample_images(binarizer):
         binarized = binarizer.binarize(undistorted)
         cv2.imwrite("../output_images/" + image_name + "_undistored.jpg", undistorted)
         cv2.imwrite("../output_images/" + image_name + "_binarized.jpg", binarized*255)
+        cv2.imwrite("../output_images/" + image_name + "_binarized_top_down.jpg", camera.to_top_down(binarized*255))
 
 
 def generate_histogram(detector):
@@ -66,7 +67,6 @@ def generate_histogram(detector):
         print("histogram", image_name)
         image = cv2.imread("../test_images/"+image_name+".jpg")
         histogram = detector.histogram(image)
-        detector.detect(image)
         plt.clf()
         plt.plot(histogram)
         plt.savefig("../output_images/" + image_name + "_histogram.jpg")
@@ -79,7 +79,7 @@ def execute():
     undistort_sample_images(camera)
     detect_perspective(camera)
     top_down_sample_images(camera)
-    binarize_sample_images(binarizer)
+    binarize_sample_images(camera, binarizer)
     generate_histogram(detector)
 
 
