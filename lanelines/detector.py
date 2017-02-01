@@ -4,8 +4,13 @@ import numpy as np
 
 class Detector:
 
-    def __init__(self):
-        pass
+    def __init__(self, camera):
+        self.camera = camera
+
+    def histogram(self, image):
+        binarized = self.binarize(self.camera.undistort(image))
+        top_down = self.camera.to_top_down(binarized)
+        return np.mean(top_down[top_down.shape[0] // 2:, :], axis=0)
 
     def binarize(self, image, sobel_kernel=5):
         combined = np.zeros(image.shape[:2])

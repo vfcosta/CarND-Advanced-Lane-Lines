@@ -3,6 +3,7 @@ import cv2
 import os.path
 from lanelines.camera import Camera
 from lanelines.detector import Detector
+import matplotlib.pyplot as plt
 
 
 def calibrate_camera():
@@ -35,17 +36,17 @@ def undistort_sample_images(camera):
         cv2.imwrite("../output_images/"+image_name+"_undistorted.jpg", undistorted)
 
 
-def unwarp_sample_images(camera):
+def top_down_sample_images(camera):
     for i, image_name in enumerate(["straight_lines1", "test2"]):
-        print("unwarp", image_name)
+        print("warp", image_name)
         image = cv2.imread("../test_images/"+image_name+".jpg")
-        unwarped = camera.unwarp(camera.undistort(image))
+        top_down = camera.to_top_down(camera.undistort(image))
         if i == 0:
             cv2.polylines(image, np.int32([camera.perspective_source_points]), 1, (0, 0, 255), 5)
             cv2.imwrite("../output_images/" + image_name + "_perspective.jpg", image)
-            cv2.polylines(unwarped, np.int32([camera.perspective_dest_points]), 1, (0, 0, 255), 5)
+            cv2.polylines(top_down, np.int32([camera.perspective_dest_points]), 1, (0, 0, 255), 5)
 
-        cv2.imwrite("../output_images/"+image_name+"_unwarped.jpg", unwarped)
+        cv2.imwrite("../output_images/"+image_name+"_top_down.jpg", top_down)
 
 
 def binarize_sample_images(detector):
@@ -59,13 +60,24 @@ def binarize_sample_images(detector):
         cv2.imwrite("../output_images/" + image_name + "_binarized.jpg", binarized*255)
 
 
+def generate_histogram(detector):
+    for i, image_name in enumerate(["straight_lines1", "test2"]):
+        print("histogram", image_name)
+        image = cv2.imread("../test_images/"+image_name+".jpg")
+        histogram = detector.histogram(image)
+        plt.clf()
+        plt.plot(histogram)
+        plt.savefig("../output_images/" + image_name + "_histogram.jpg")
+
+
 def execute():
     camera = calibrate_camera()
+    detector = Detector(camera)
     undistort_sample_images(camera)
     detect_perspective(camera)
-    unwarp_sample_images(camera)
-    detector = Detector()
+    top_down_sample_images(camera)
     binarize_sample_images(detector)
+    generate_histogram(detector)
 
 
 if __name__ == '__main__':

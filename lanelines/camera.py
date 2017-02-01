@@ -18,8 +18,10 @@ class Camera:
         self.perspective_dest_points = None
 
     def calibrate(self, path="../camera_cal/*.jpg", corners_x=9, corners_y=6, ignore_missing=False):
-        objpoints, imgpoints, self.shape = self.detect_image_points(path, corners_x=corners_x, corners_y=corners_y, ignore_missing=ignore_missing)
-        ret, self.camera_matrix, self.dist_coeffs, self.rvecs, self.tvecs = cv2.calibrateCamera(objpoints, imgpoints, self.shape, None, None)
+        objpoints, imgpoints, self.shape = self.detect_image_points(path, corners_x=corners_x, corners_y=corners_y,
+                                                                    ignore_missing=ignore_missing)
+        ret, self.camera_matrix, self.dist_coeffs, self.rvecs, self.tvecs =\
+            cv2.calibrateCamera(objpoints, imgpoints, self.shape, None, None)
         if not ret:
             raise Exception("can't calibrate camera with path " + path)
 
@@ -36,7 +38,7 @@ class Camera:
         self.perspective_matrix = cv2.getPerspectiveTransform(source_points, dest_points)
         self.inverse_perspective_matrix = cv2.getPerspectiveTransform(dest_points, source_points)
 
-    def unwarp(self, image):
+    def to_top_down(self, image):
         return cv2.warpPerspective(image, self.perspective_matrix,
                                    (image.shape[1], image.shape[0]), flags=cv2.INTER_LINEAR)
 
