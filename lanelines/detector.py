@@ -20,7 +20,24 @@ class Detector:
         out_image = np.uint8(np.dstack((top_down, top_down, top_down))*255) if merge_original else np.zeros_like(image)
         self.draw_lines(out_image, line_left, out_image_left)
         self.draw_lines(out_image, line_right, out_image_right, channel=2)
-        return out_image, line_left, line_right
+
+        curvature_left = self.calculate_curvature(top_down, line_left)
+        curvature_right = self.calculate_curvature(top_down, line_right)
+        return out_image, line_left, line_right, curvature_left, curvature_right
+
+    def calculate_curvature(self, image, line):
+        ym_per_pix = 30 / 720  # meters per pixel in y dimension
+        xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
+
+        ploty = np.linspace(0, image.shape[0] - 1, image.shape[0])
+        y_eval = np.max(ploty)
+        linex = line[0] * ploty ** 2 + line[1] * ploty + line[2]
+
+        # Fit new polynomials to x,y in world space
+        left_fit_cr = np.polyfit(ploty * ym_per_pix, linex * xm_per_pix, 2)
+        # Calculate the new radii of curvature
+        return ((1 + (2 * left_fit_cr[0] * y_eval * ym_per_pix + left_fit_cr[1]) ** 2) ** 1.5)\
+               / np.absolute(2 * left_fit_cr[0])
 
     def draw_lines(self, image, line, out_image, channel=0):
         ploty = np.linspace(0, image.shape[0] - 1, image.shape[0])
