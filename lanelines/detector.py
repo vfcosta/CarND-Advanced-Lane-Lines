@@ -8,6 +8,7 @@ class Detector:
     def __init__(self, camera):
         self.camera = camera
         self.binarizer = Binarizer()
+        self.meters_per_pixels = (3.7 / 700, 30 / 720)  # meters per pixel in x, y
 
     def detect(self, image, merge_original=False, previous_line_left=None, previous_line_right=None):
         histogram, top_down = self.histogram(image)
@@ -23,20 +24,24 @@ class Detector:
 
         curvature_left = self.calculate_curvature(top_down, line_left)
         curvature_right = self.calculate_curvature(top_down, line_right)
-        return out_image, line_left, line_right, curvature_left, curvature_right
+        offset = self.center_offset(image, line_left, line_right)
+        return out_image, line_left, line_right, curvature_left, curvature_right, offset
+
+    def center_offset(self, image, line_left, line_right):
+        y = image.shape[0]
+        linex = line_left[0] * y ** 2 + line_left[1] * y + line_left[2]
+        liney = line_right[0] * y ** 2 + line_right[1] * y + line_right[2]
+        return (np.mean([linex, liney]) - image.shape[1]/2) * self.meters_per_pixels[0]
 
     def calculate_curvature(self, image, line):
-        ym_per_pix = 30 / 720  # meters per pixel in y dimension
-        xm_per_pix = 3.7 / 700  # meters per pixel in x dimension
-
         ploty = np.linspace(0, image.shape[0] - 1, image.shape[0])
         y_eval = np.max(ploty)
         linex = line[0] * ploty ** 2 + line[1] * ploty + line[2]
 
         # Fit new polynomials to x,y in world space
-        left_fit_cr = np.polyfit(ploty * ym_per_pix, linex * xm_per_pix, 2)
+        left_fit_cr = np.polyfit(ploty * self.meters_per_pixels[1], linex * self.meters_per_pixels[0], 2)
         # Calculate the new radii of curvature
-        return ((1 + (2 * left_fit_cr[0] * y_eval * ym_per_pix + left_fit_cr[1]) ** 2) ** 1.5)\
+        return ((1 + (2 * left_fit_cr[0] * y_eval * self.meters_per_pixels[1] + left_fit_cr[1]) ** 2) ** 1.5)\
                / np.absolute(2 * left_fit_cr[0])
 
     def draw_lines(self, image, line, out_image, channel=0):

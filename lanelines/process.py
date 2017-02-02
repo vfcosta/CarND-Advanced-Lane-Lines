@@ -77,11 +77,11 @@ def detect_lane_lines(detector):
         print("detect lane lines", image_name)
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread("../test_images/"+image_name+".jpg")
-        lines_image, line_left, line_right, curvature_left, curvature_right = detector.detect(image)
+        lines_image, line_left, line_right, curvature_left, curvature_right, offset = detector.detect(image)
         cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
-        print(curvature_left, curvature_right)
+        print(curvature_left, curvature_right, offset)
         if i == 0:
-            lines_image, _, _, _, _ = detector.detect(image, previous_line_left=line_left,
+            lines_image, _, _, _, _, _ = detector.detect(image, previous_line_left=line_left,
                                                                  previous_line_right=line_right)
             cv2.imwrite("../output_images/" + image_name + "_lines_previous.jpg", lines_image)
 
