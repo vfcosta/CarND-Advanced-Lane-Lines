@@ -73,12 +73,16 @@ def generate_histogram(detector):
 
 
 def detect_lane_lines(detector):
-    for image_name in os.listdir("../test_images/"):
+    for i, image_name in enumerate(os.listdir("../test_images/")):
         print("detect lane lines", image_name)
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread("../test_images/"+image_name+".jpg")
-        lines_image = detector.detect(image)
+        lines_image, line_left, line_right = detector.detect(image)
         cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
+        if i == 0:
+            lines_image, line_left, line_right = detector.detect(image, previous_line_left=line_left,
+                                                                 previous_line_right=line_right)
+            cv2.imwrite("../output_images/" + image_name + "_lines_previous.jpg", lines_image)
 
 
 def execute():
