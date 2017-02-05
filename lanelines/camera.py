@@ -42,6 +42,11 @@ class Camera:
         return cv2.warpPerspective(image, self.perspective_matrix,
                                    (image.shape[1], image.shape[0]), flags=cv2.INTER_LINEAR)
 
+    def to_perspective(self, top_down_image):
+        return cv2.warpPerspective(top_down_image, self.inverse_perspective_matrix,
+                                   (top_down_image.shape[1], top_down_image.shape[0]))
+
+
     def save(self, filename="camera.p"):
         pickle.dump(vars(self), open(filename, "wb"))
 

@@ -22,8 +22,10 @@ class Detector:
         self.draw_lines(out_image, line_left, out_image_left)
         self.draw_lines(out_image, line_right, out_image_right, channel=2)
 
+        lines_original = self.draw_lines_original(top_down, image, line_left, line_right)
+
         offset = self.center_offset(image, line_left, line_right)
-        return out_image, line_left, line_right, offset
+        return out_image, line_left, line_right, offset, lines_original
 
     def center_offset(self, image, line_left, line_right):
         return (np.mean([line_left.fit_x[0], line_right.fit_x[0]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
@@ -31,6 +33,22 @@ class Detector:
     def draw_lines(self, image, line, out_image, channel=0):
         image[:, :, channel] = out_image
         cv2.polylines(image, np.int32([np.vstack((line.fit_x, line.fit_y)).transpose()]), False, (0, 255, 255), 5)
+
+    def draw_lines_original(self, warped_image, original_image, line_left, line_right):
+        warp_zero = np.zeros_like(warped_image).astype(np.uint8)
+        color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
+
+        # Recast the x and y points into usable format for cv2.fillPoly()
+        pts_left = np.array([np.transpose(np.vstack([line_left.fit_x, line_left.fit_y]))])
+        pts_right = np.array([np.flipud(np.transpose(np.vstack([line_right.fit_x, line_right.fit_y])))])
+        pts = np.hstack((pts_left, pts_right))
+
+        # Draw the lane onto the warped blank image
+        cv2.fillPoly(color_warp, np.int_([pts]), (0, 255, 0))
+        # Warp the blank back to original image space using inverse perspective matrix (Minv)
+        newwarp = self.camera.to_perspective(color_warp)
+        # Combine the result with the original image
+        return cv2.addWeighted(original_image, 1, newwarp, 0.3, 0)
 
     def find_line(self, image, x, nwindows=9, draw_window=True, line=None):
         """Find lane line given a binarized warped image and a start position"""
