@@ -22,13 +22,18 @@ class Detector:
         self.draw_lines(out_image, line_left, out_image_left)
         self.draw_lines(out_image, line_right, out_image_right, channel=2)
 
-        lines_original = self.draw_lines_original(top_down, image, line_left, line_right)
-
         offset = self.center_offset(image, line_left, line_right)
+        lines_original = self.draw_lines_original(top_down, image, line_left, line_right)
+        self.draw_info(lines_original, line_left, line_right, offset)
+
         return out_image, line_left, line_right, offset, lines_original
 
     def center_offset(self, image, line_left, line_right):
         return (np.mean([line_left.fit_x[0], line_right.fit_x[0]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
+
+    def draw_info(self, lines_original, line_left, line_right, offset):
+        cv2.putText(lines_original, "curvature: %0.3fm" % line_left.radius_of_curvature, (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
+        cv2.putText(lines_original, "center offset: %0.3fm" % offset, (0, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
 
     def draw_lines(self, image, line, out_image, channel=0):
         image[:, :, channel] = out_image
