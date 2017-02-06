@@ -28,7 +28,7 @@ class Camera:
     def undistort(self, image):
         return cv2.undistort(image, self.camera_matrix, self.dist_coeffs, None, self.camera_matrix)
 
-    def detect_perspective(self, image, source_points, dest_points=None, offset_x=300, offset_y=100):
+    def detect_perspective(self, image, source_points, dest_points=None, offset_x=300, offset_y=250):
         if dest_points is None:
             dest_points = np.float32([(offset_x, offset_y), (image.shape[1] - offset_x, offset_y),
                                       (image.shape[1] - offset_x, image.shape[0]), (offset_x, image.shape[0])])
