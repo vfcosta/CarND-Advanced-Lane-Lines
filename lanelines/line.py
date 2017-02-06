@@ -31,7 +31,7 @@ class Line:
         self.calculate_curvature()
 
     def calculate_curvature(self):
-        y_eval = np.max(self.fit_y)
+        y_eval = self.fit_y[-1]
         # Fit new polynomials to x,y in world space
         fit_curve = np.polyfit(self.fit_y * self.meters_per_pixels[1], self.fit_x * self.meters_per_pixels[0], 2)
         # Calculate the new radii of curvature

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from lanelines.camera import Camera
 from lanelines.detector import Detector
 from lanelines.binarizer import Binarizer
-import lanelines.pipeline as pipeline
+from lanelines.pipeline import Pipeline
 
 
 def calibrate_camera():
@@ -80,6 +80,7 @@ def detect_lane_lines(detector):
         print("detect lane lines", image_name)
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread("../test_images/"+image_name+".jpg")
+        pipeline = Pipeline()
         lines_image, line_left, line_right, offset, lines_original, top_down = pipeline.process_image(image)
         cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
         cv2.imwrite("../output_images/" + image_name + "_lines_perspective.jpg", lines_original)

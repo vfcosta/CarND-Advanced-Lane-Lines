@@ -1,5 +1,7 @@
 from moviepy.editor import VideoFileClip
-import lanelines.pipeline as pipeline
+from lanelines.pipeline import Pipeline
+
+pipeline = Pipeline()
 
 
 def process_frame(image):
