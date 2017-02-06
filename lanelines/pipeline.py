@@ -12,7 +12,7 @@ class Pipeline:
         self.binarizer = Binarizer()
         self.detector = Detector(self.camera)
 
-    def draw_lines(self, warped_image, original_image, line_left, line_right):
+    def draw_lane(self, warped_image, original_image, line_left, line_right):
         warp_zero = np.zeros_like(warped_image).astype(np.uint8)
         color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
 
@@ -46,12 +46,19 @@ class Pipeline:
         undistorted = self.camera.undistort(image)
         binarized = self.binarizer.binarize(undistorted)
         top_down = self.camera.to_top_down(binarized)
-        lines_image, line_left, line_right, offset = self.detector.detect(image, top_down)
+        line_left, line_right, offset = self.detector.detect(image, top_down)
 
-        lines_original = self.draw_lines(top_down, image, line_left, line_right)
+        lines_original = self.draw_lane(top_down, image, line_left, line_right)
+        lines_image = self.draw_top_down_lines(image, line_left, line_right)
         self.draw_info(lines_original, line_left, line_right, offset)
         if display_top_down:
             self.draw_top_down(lines_original, top_down, lines_image)
 
         return lines_image, line_left, line_right, offset, lines_original, top_down
 
+    def draw_top_down_lines(self, image, line_left, line_right):
+        lines_image = np.zeros_like(image)
+        for i, line in enumerate([line_left, line_right]):
+            lines_image[:, :, i*2] = line.image
+            cv2.polylines(lines_image, np.int32([np.vstack((line.fit_x, line.fit_y)).transpose()]), False, (0, 255, 255), 5)
+        return lines_image

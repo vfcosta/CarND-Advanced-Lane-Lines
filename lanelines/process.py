@@ -85,11 +85,7 @@ def detect_lane_lines(detector):
         cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
         cv2.imwrite("../output_images/" + image_name + "_lines_perspective.jpg", lines_original)
         if i == 0:
-            detector.previous_line_left = line_left
-            detector.previous_line_right = line_right
-            lines_image, _, _, _ = detector.detect(image, top_down)
-            detector.previous_line_left = None
-            detector.previous_line_right = None
+            lines_image, _, _, _, _, _ = pipeline.process_image(image)
             cv2.imwrite("../output_images/" + image_name + "_lines_previous.jpg", lines_image)
 
 

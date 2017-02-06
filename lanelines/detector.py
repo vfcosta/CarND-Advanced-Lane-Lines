@@ -14,7 +14,7 @@ class Detector:
         self.miss = 0
         self.miss_limit = 10
 
-    def detect(self, image, top_down, merge_original=False):
+    def detect(self, image, top_down):
         leftx_base = None
         rightx_base = None
         if self.previous_line_left is None and self.previous_line_right is None:
@@ -25,14 +25,11 @@ class Detector:
 
         line_left = self.find_line(top_down, x=leftx_base, line=self.previous_line_left)
         line_right = self.find_line(top_down, x=rightx_base, line=self.previous_line_right)
-        out_image = np.uint8(np.dstack((top_down, top_down, top_down))*255) if merge_original else np.zeros_like(image)
-        self.draw_lines(out_image, line_left)
-        self.draw_lines(out_image, line_right, channel=2)
 
         # print("PARALLEL", self.miss, line_left.similar_curvature(line_right), line_left.similar_distance(line_right), line_left.similar_slope(line_right))
         line_left, line_right = self.smooth_lines(line_left, line_right)
         offset = self.center_offset(image, line_left, line_right)
-        return out_image, line_left, line_right, offset
+        return line_left, line_right, offset
 
     def smooth_lines(self, line_left, line_right):
         if line_left.is_parallel(line_right):
@@ -51,10 +48,6 @@ class Detector:
 
     def center_offset(self, image, line_left, line_right):
         return (np.mean([line_left.fit_x[-1], line_right.fit_x[-1]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
-
-    def draw_lines(self, image, line, channel=0):
-        image[:, :, channel] = line.image
-        cv2.polylines(image, np.int32([np.vstack((line.fit_x, line.fit_y)).transpose()]), False, (0, 255, 255), 5)
 
     def find_line(self, image, x, nwindows=9, draw_window=True, line=None):
         """Find lane line given a binarized warped image and a start position"""
