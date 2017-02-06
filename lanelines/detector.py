@@ -10,17 +10,20 @@ class Detector:
         self.camera = camera
         self.binarizer = Binarizer()
 
-    def detect(self, image, merge_original=False, previous_line_left=None, previous_line_right=None):
-        histogram, top_down = self.histogram(image)
-        midpoint = np.int(histogram.shape[0] / 2)
-        leftx_base = np.argmax(histogram[:midpoint])
-        rightx_base = np.argmax(histogram[midpoint:]) + midpoint
+    def detect(self, image, top_down, merge_original=False, previous_line_left=None, previous_line_right=None):
+        leftx_base = None
+        rightx_base = None
+        if previous_line_left is None and previous_line_right is None:
+            histogram = self.histogram(top_down)
+            midpoint = np.int(histogram.shape[0] / 2)
+            leftx_base = np.argmax(histogram[:midpoint])
+            rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
-        line_left, out_image_left = self.find_line(top_down, leftx_base, line=previous_line_left)
-        line_right, out_image_right = self.find_line(top_down, rightx_base, line=previous_line_right)
+        line_left = self.find_line(top_down, x=leftx_base, line=previous_line_left)
+        line_right = self.find_line(top_down, x=rightx_base, line=previous_line_right)
         out_image = np.uint8(np.dstack((top_down, top_down, top_down))*255) if merge_original else np.zeros_like(image)
-        self.draw_lines(out_image, line_left, out_image_left)
-        self.draw_lines(out_image, line_right, out_image_right, channel=2)
+        self.draw_lines(out_image, line_left)
+        self.draw_lines(out_image, line_right, channel=2)
 
         offset = self.center_offset(image, line_left, line_right)
         lines_original = self.draw_lines_original(top_down, image, line_left, line_right)
@@ -33,10 +36,11 @@ class Detector:
 
     def draw_info(self, lines_original, line_left, line_right, offset):
         cv2.putText(lines_original, "curvature: %0.3fm" % line_left.radius_of_curvature, (0, 40), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
+        # cv2.putText(lines_original, "right curvature: %0.1fm" % line_right.radius_of_curvature, (0, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
         cv2.putText(lines_original, "center offset: %0.3fm" % offset, (0, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
 
-    def draw_lines(self, image, line, out_image, channel=0):
-        image[:, :, channel] = out_image
+    def draw_lines(self, image, line, channel=0):
+        image[:, :, channel] = line.image
         cv2.polylines(image, np.int32([np.vstack((line.fit_x, line.fit_y)).transpose()]), False, (0, 255, 255), 5)
 
     def draw_lines_original(self, warped_image, original_image, line_left, line_right):
@@ -73,7 +77,8 @@ class Detector:
         line = Line()
         line.fit(nonzerox[lane_inds], nonzeroy[lane_inds], image.shape)
         out_img[nonzeroy[lane_inds], nonzerox[lane_inds]] = 255
-        return line, out_img
+        line.image = out_img
+        return line
 
     def search_previous_line(self, image, line, margin, nonzerox, nonzeroy, draw_window):
         out_img = np.zeros_like(image)
@@ -105,10 +110,8 @@ class Detector:
         return ((nonzeroy >= right_bottom[1]) & (nonzeroy < left_top[1]) &
                 (nonzerox >= left_top[0]) & (nonzerox < right_bottom[0])).nonzero()[0]
 
-    def histogram(self, image, bin_width=None):
-        binarized = self.binarizer.binarize(self.camera.undistort(image))
-        top_down = self.camera.to_top_down(binarized)
-        hist = np.mean(top_down[top_down.shape[0] // 2:, :], axis=0)
+    def histogram(self, top_down_image, bin_width=None):
+        hist = np.mean(top_down_image[top_down_image.shape[0] // 2:, :], axis=0)
         if bin_width:
-            return np.histogram(range(hist.shape[0]), bins=hist.shape[0]//bin_width, weights=hist)[0], top_down
-        return hist, top_down
+            return np.histogram(range(hist.shape[0]), bins=hist.shape[0]//bin_width, weights=hist)[0], top_down_image
+        return hist

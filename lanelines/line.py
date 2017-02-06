@@ -18,6 +18,7 @@ class Line:
         self.fit_y = None  # y values for fitted line
         self.shape = None  # image shape
         self.meters_per_pixels = (3.7 / 700, 30 / 720)  # meters per pixel in x, y
+        self.image = None  # single channel image that contains line pixels
 
     def fit(self, lanex, laney, shape):
         self.detected = True
@@ -30,9 +31,9 @@ class Line:
         self.calculate_curvature()
 
     def calculate_curvature(self):
-        y_eval = np.max(self.ally)
+        y_eval = np.max(self.fit_y)
         # Fit new polynomials to x,y in world space
-        left_fit_cr = np.polyfit(self.fit_y * self.meters_per_pixels[1], self.fit_x * self.meters_per_pixels[0], 2)
+        fit_curve = np.polyfit(self.fit_y * self.meters_per_pixels[1], self.fit_x * self.meters_per_pixels[0], 2)
         # Calculate the new radii of curvature
-        self.radius_of_curvature = ((1 + (2 * left_fit_cr[0] * y_eval * self.meters_per_pixels[1] + left_fit_cr[1]) ** 2) ** 1.5)\
-               / np.absolute(2 * left_fit_cr[0])
+        self.radius_of_curvature = ((1 + (2 * fit_curve[0] * y_eval * self.meters_per_pixels[1] + fit_curve[1]) ** 2) ** 1.5)\
+               / np.absolute(2 * fit_curve[0])

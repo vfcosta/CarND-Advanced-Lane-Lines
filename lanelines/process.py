@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from lanelines.camera import Camera
 from lanelines.detector import Detector
 from lanelines.binarizer import Binarizer
+import lanelines.pipeline as pipeline
 
 
 def calibrate_camera():
@@ -54,7 +55,6 @@ def binarize_sample_images(camera, binarizer):
     for image_name in os.listdir("../test_images/"):
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread('../test_images/'+image_name+'.jpg')
-        camera = Camera.load()
         undistorted = camera.undistort(image)
         binarized = binarizer.binarize(undistorted)
         cv2.imwrite("../output_images/" + image_name + "_undistored.jpg", undistorted)
@@ -62,11 +62,14 @@ def binarize_sample_images(camera, binarizer):
         cv2.imwrite("../output_images/" + image_name + "_binarized_top_down.jpg", camera.to_top_down(binarized*255))
 
 
-def generate_histogram(detector):
+def generate_histogram(detector, camera, binarizer):
     for i, image_name in enumerate(["straight_lines1", "test2"]):
         print("histogram", image_name)
         image = cv2.imread("../test_images/"+image_name+".jpg")
-        histogram, top_down = detector.histogram(image)
+        undistorted = camera.undistort(image)
+        binarized = binarizer.binarize(undistorted)
+        top_down = camera.to_top_down(binarized)
+        histogram = detector.histogram(top_down)
         plt.clf()
         plt.plot(histogram)
         plt.savefig("../output_images/" + image_name + "_histogram.jpg")
@@ -77,12 +80,12 @@ def detect_lane_lines(detector):
         print("detect lane lines", image_name)
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread("../test_images/"+image_name+".jpg")
-        lines_image, line_left, line_right, offset, lines_original = detector.detect(image)
+        lines_image, line_left, line_right, offset, lines_original, top_down = pipeline.process_image(image)
         cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
         cv2.imwrite("../output_images/" + image_name + "_lines_perspective.jpg", lines_original)
         print(line_left.radius_of_curvature, line_right.radius_of_curvature, offset)
         if i == 0:
-            lines_image, _, _, _, _ = detector.detect(image, previous_line_left=line_left,
+            lines_image, _, _, _, _ = detector.detect(image, top_down, previous_line_left=line_left,
                                                                  previous_line_right=line_right)
             cv2.imwrite("../output_images/" + image_name + "_lines_previous.jpg", lines_image)
 
@@ -95,7 +98,7 @@ def execute():
     detect_perspective(camera)
     top_down_sample_images(camera)
     binarize_sample_images(camera, binarizer)
-    generate_histogram(detector)
+    generate_histogram(detector, camera, binarizer)
     detect_lane_lines(detector)
 
 
