@@ -85,7 +85,7 @@ def detect_lane_lines(detector):
         cv2.imwrite("../output_images/" + image_name + "_lines_perspective.jpg", lines_original)
         print(line_left.radius_of_curvature, line_right.radius_of_curvature, offset)
         if i == 0:
-            lines_image, _, _, _, _ = detector.detect(image, top_down, previous_line_left=line_left,
+            lines_image, _, _, _ = detector.detect(image, top_down, previous_line_left=line_left,
                                                                  previous_line_right=line_right)
             cv2.imwrite("../output_images/" + image_name + "_lines_previous.jpg", lines_image)
 

@@ -14,8 +14,7 @@ def process_video(filename):
     white_clip.write_videofile(white_output, audio=False)
 
 
-def execute():
-    process_video('project_video')
-
 if __name__ == '__main__':
-    execute()
+    process_video('project_video')
+    process_video('challenge_video')
+    process_video('harder_challenge_video')
