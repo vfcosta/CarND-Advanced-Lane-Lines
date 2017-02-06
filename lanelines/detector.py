@@ -29,7 +29,7 @@ class Detector:
         return out_image, line_left, line_right, offset
 
     def center_offset(self, image, line_left, line_right):
-        return (np.mean([line_left.fit_x[0], line_right.fit_x[0]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
+        return (np.mean([line_left.fit_x[-1], line_right.fit_x[-1]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
 
     def draw_lines(self, image, line, channel=0):
         image[:, :, channel] = line.image
