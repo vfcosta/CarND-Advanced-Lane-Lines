@@ -9,24 +9,45 @@ class Detector:
     def __init__(self, camera):
         self.camera = camera
         self.binarizer = Binarizer()
+        self.previous_line_left = None
+        self.previous_line_right = None
+        self.miss = 0
+        self.miss_limit = 10
 
-    def detect(self, image, top_down, merge_original=False, previous_line_left=None, previous_line_right=None):
+    def detect(self, image, top_down, merge_original=False):
         leftx_base = None
         rightx_base = None
-        if previous_line_left is None and previous_line_right is None:
+        if self.previous_line_left is None and self.previous_line_right is None:
             histogram = self.histogram(top_down)
             midpoint = np.int(histogram.shape[0] / 2)
             leftx_base = np.argmax(histogram[:midpoint])
             rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
-        line_left = self.find_line(top_down, x=leftx_base, line=previous_line_left)
-        line_right = self.find_line(top_down, x=rightx_base, line=previous_line_right)
+        line_left = self.find_line(top_down, x=leftx_base, line=self.previous_line_left)
+        line_right = self.find_line(top_down, x=rightx_base, line=self.previous_line_right)
         out_image = np.uint8(np.dstack((top_down, top_down, top_down))*255) if merge_original else np.zeros_like(image)
         self.draw_lines(out_image, line_left)
         self.draw_lines(out_image, line_right, channel=2)
 
+        # print("PARALLEL", self.miss, line_left.similar_curvature(line_right), line_left.similar_distance(line_right), line_left.similar_slope(line_right))
+        line_left, line_right = self.smooth_lines(line_left, line_right)
         offset = self.center_offset(image, line_left, line_right)
         return out_image, line_left, line_right, offset
+
+    def smooth_lines(self, line_left, line_right):
+        if line_left.is_parallel(line_right):
+            self.previous_line_left = line_left
+            self.previous_line_right = line_right
+            self.miss = 0
+        else:
+            self.miss += 1
+            if self.previous_line_left is not None and self.previous_line_right is not None:
+                line_left = self.previous_line_left
+                line_right = self.previous_line_right
+            if self.miss > self.miss_limit:
+                self.previous_line_right = None
+                self.previous_line_left = None
+        return line_left, line_right
 
     def center_offset(self, image, line_left, line_right):
         return (np.mean([line_left.fit_x[-1], line_right.fit_x[-1]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
