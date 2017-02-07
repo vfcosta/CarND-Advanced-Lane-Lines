@@ -1,4 +1,5 @@
 import numpy as np
+from collections import deque
 
 
 class Line:
@@ -7,27 +8,27 @@ class Line:
         self.detected = False  # was the line detected in the last iteration?
         self.best_x = None  # average x values of the fitted line over the last n iterations
         self.best_fit = None  # polynomial coefficients averaged over the last n iterations
-        self.current_fit = [np.array([False])]  # polynomial coefficients for the most recent fit
+        self.current_fit = None  # polynomial coefficients for the most recent fit
         self.radius_of_curvature = None  # radius of curvature of the line in real world units (meters)
-        self.line_base_pos = None  # distance in meters of vehicle center from the line
-        self.diffs = np.array([0, 0, 0], dtype='float')  # difference in fit coefficients between last and new fits
-        self.allx = None  # x values for detected line pixels
-        self.ally = None  # y values for detected line pixels
+        # self.line_base_pos = None  # distance in meters of vehicle center from the line
+        # self.diffs = np.array([0, 0, 0], dtype='float')  # difference in fit coefficients between last and new fits
+        self.all_x = deque(maxlen=10)  # x values for all fitted lines
         self.fit_x = None  # x values for last fitted line
         self.fit_y = None  # y values for last fitted line
-        self.shape = None  # image shape
         self.meters_per_pixels = (3.7 / 700, 30 / 720)  # meters per pixel in x, y
         self.image = None  # single channel image that contains line pixels
+        self.miss = 0  # number of misses for line detection
+        self.miss_limit = 10  # tolerance for misses
 
-    def fit(self, lanex, laney, shape):
+    def fit(self, lanex, laney, image):
         """Fit a line given valid pixels"""
+        self.image = image
         self.detected = True
-        self.allx = lanex
-        self.ally = laney
-        self.shape = shape
         self.current_fit = np.polyfit(laney, lanex, 2)
-        self.fit_y = np.linspace(0, shape[0] - 1, shape[0])
+        self.fit_y = np.linspace(0, image.shape[0] - 1, image.shape[0])
         self.fit_x = self.current_fit[0] * self.fit_y ** 2 + self.current_fit[1] * self.fit_y + self.current_fit[2]
+        if self.best_x is None:
+            self.best_x = self.fit_x
         self.calculate_curvature()
 
     def calculate_curvature(self):
@@ -63,4 +64,18 @@ class Line:
 
     def center_offset(self, line):
         """Calculate offset from image center given other line"""
-        return (np.mean([self.fit_x[-1], line.fit_x[-1]]) - self.shape[1] / 2) * self.meters_per_pixels[0]
+        return (np.mean([self.fit_x[-1], line.fit_x[-1]]) - self.image.shape[1] / 2) * self.meters_per_pixels[0]
+
+    def validate(self, valid):
+        """Validate last detected line and store it when valid and reject when invalid"""
+        if valid:
+            self.detected = True
+            self.miss = 0  # reset miss accumulator
+            self.all_x.append(self.fit_x)
+            self.best_x = np.mean(np.array(self.all_x), axis=0)
+        else:
+            self.miss += 1  # increase miss accumulator
+            if self.miss > self.miss_limit:
+                # reset lines
+                self.detected = False
+                self.all_x.clear()

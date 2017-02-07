@@ -17,8 +17,8 @@ class Pipeline:
         color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
 
         # Recast the x and y points into usable format for cv2.fillPoly()
-        pts_left = np.array([np.transpose(np.vstack([line_left.fit_x, line_left.fit_y]))])
-        pts_right = np.array([np.flipud(np.transpose(np.vstack([line_right.fit_x, line_right.fit_y])))])
+        pts_left = np.array([np.transpose(np.vstack([line_left.best_x, line_left.fit_y]))])
+        pts_right = np.array([np.flipud(np.transpose(np.vstack([line_right.best_x, line_right.fit_y])))])
         pts = np.hstack((pts_left, pts_right))
 
         # Draw the lane onto the warped blank image
@@ -61,5 +61,5 @@ class Pipeline:
         lines_image = np.zeros_like(image)
         for i, line in enumerate([line_left, line_right]):
             lines_image[:, :, i*2] = line.image
-            cv2.polylines(lines_image, np.int32([np.vstack((line.fit_x, line.fit_y)).transpose()]), False, (0, 255, 255), 5)
+            cv2.polylines(lines_image, np.int32([np.vstack((line.best_x, line.fit_y)).transpose()]), False, (0, 255, 255), 5)
         return lines_image

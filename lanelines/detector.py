@@ -9,41 +9,25 @@ class Detector:
     def __init__(self, camera):
         self.camera = camera
         self.binarizer = Binarizer()
-        self.previous_line_left = None
-        self.previous_line_right = None
-        self.miss = 0
-        self.miss_limit = 10
+        self.line_left = Line()
+        self.line_right = Line()
 
     def detect(self, top_down):
         """Detect lane lines given an image and its top down projection"""
         leftx_base = None
         rightx_base = None
-        if self.previous_line_left is None and self.previous_line_right is None:
+        if not self.line_left.detected and not self.line_right.detected:
             histogram = self.histogram(top_down)
             midpoint = np.int(histogram.shape[0] / 2)
             leftx_base = np.argmax(histogram[:midpoint])
             rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
-        line_left = self.find_line(top_down, x=leftx_base, line=self.previous_line_left)
-        line_right = self.find_line(top_down, x=rightx_base, line=self.previous_line_right)
-
-        line_left, line_right = self.smooth_lines(line_left, line_right)
-        return line_left, line_right
-
-    def smooth_lines(self, line_left, line_right):
-        if line_left.is_parallel(line_right):
-            self.previous_line_left = line_left
-            self.previous_line_right = line_right
-            self.miss = 0
-        else:
-            self.miss += 1
-            if self.previous_line_left is not None and self.previous_line_right is not None:
-                line_left = self.previous_line_left
-                line_right = self.previous_line_right
-            if self.miss > self.miss_limit:
-                self.previous_line_right = None
-                self.previous_line_left = None
-        return line_left, line_right
+        self.line_left = self.find_line(top_down, x=leftx_base, line=self.line_left)
+        self.line_right = self.find_line(top_down, x=rightx_base, line=self.line_right)
+        parallel = self.line_left.is_parallel(self.line_right)
+        self.line_left.validate(parallel)
+        self.line_right.validate(parallel)
+        return self.line_left, self.line_right
 
     def find_line(self, image, x, nwindows=9, draw_window=True, line=None):
         """Find lane line given a binarized warped image and a start position"""
@@ -52,7 +36,7 @@ class Detector:
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
 
-        if line is not None:
+        if line.detected:
             lane_inds, out_img = self.search_previous_line(image, line, margin=100, nonzerox=nonzerox,
                                                            nonzeroy=nonzeroy, draw_window=draw_window)
         else:
@@ -60,10 +44,8 @@ class Detector:
                                                      nonzeroy=nonzeroy, nwindows=nwindows,
                                                      window_height=window_height, draw_window=draw_window)
 
-        line = Line()
-        line.fit(nonzerox[lane_inds], nonzeroy[lane_inds], image.shape)
         out_img[nonzeroy[lane_inds], nonzerox[lane_inds]] = 255
-        line.image = out_img
+        line.fit(nonzerox[lane_inds], nonzeroy[lane_inds], out_img)
         return line
 
     def search_previous_line(self, image, line, margin, nonzerox, nonzeroy, draw_window):
