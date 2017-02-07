@@ -2,6 +2,9 @@ import numpy as np
 import cv2
 import glob
 import pickle
+import os.path
+
+base_dir = os.path.dirname(__file__)
 
 
 class Camera:
@@ -17,7 +20,7 @@ class Camera:
         self.perspective_source_points = None
         self.perspective_dest_points = None
 
-    def calibrate(self, path="../camera_cal/*.jpg", corners_x=9, corners_y=6, ignore_missing=False):
+    def calibrate(self, path=os.path.join(base_dir, "../camera_cal/*.jpg"), corners_x=9, corners_y=6, ignore_missing=False):
         objpoints, imgpoints, self.shape = self.detect_image_points(path, corners_x=corners_x, corners_y=corners_y,
                                                                     ignore_missing=ignore_missing)
         ret, self.camera_matrix, self.dist_coeffs, self.rvecs, self.tvecs =\
@@ -47,11 +50,11 @@ class Camera:
                                    (top_down_image.shape[1], top_down_image.shape[0]))
 
 
-    def save(self, filename="camera.p"):
+    def save(self, filename=os.path.join(base_dir, "camera.p")):
         pickle.dump(vars(self), open(filename, "wb"))
 
     @classmethod
-    def load(cls, filename="camera.p"):
+    def load(cls, filename=os.path.join(base_dir, "camera.p")):
         camera = Camera()
         attributes = pickle.load(open(filename, "rb"))
         for k, v in attributes.items():
