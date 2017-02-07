@@ -81,11 +81,11 @@ def detect_lane_lines(detector):
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread("../test_images/"+image_name+".jpg")
         pipeline = Pipeline()
-        lines_image, line_left, line_right, offset, lines_original, top_down = pipeline.process_image(image)
+        lines_image, line_left, line_right, lines_original, top_down = pipeline.process_image(image)
         cv2.imwrite("../output_images/" + image_name + "_lines.jpg", lines_image)
         cv2.imwrite("../output_images/" + image_name + "_lines_perspective.jpg", lines_original)
         if i == 0:
-            lines_image, _, _, _, _, _ = pipeline.process_image(image)
+            lines_image, _, _, _, _ = pipeline.process_image(image)
             cv2.imwrite("../output_images/" + image_name + "_lines_previous.jpg", lines_image)
 
 
@@ -93,11 +93,11 @@ def execute():
     camera = calibrate_camera()
     binarizer = Binarizer()
     detector = Detector(camera)
-    undistort_sample_images(camera)
-    detect_perspective(camera)
-    top_down_sample_images(camera)
-    binarize_sample_images(camera, binarizer)
-    generate_histogram(detector, camera, binarizer)
+    # undistort_sample_images(camera)
+    # detect_perspective(camera)
+    # top_down_sample_images(camera)
+    # binarize_sample_images(camera, binarizer)
+    # generate_histogram(detector, camera, binarizer)
     detect_lane_lines(detector)
 
 

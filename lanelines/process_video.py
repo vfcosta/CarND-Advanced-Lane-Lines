@@ -18,5 +18,5 @@ def process_video(filename):
 
 if __name__ == '__main__':
     process_video('project_video')
-    # process_video('challenge_video')
-    # process_video('harder_challenge_video')
+    process_video('challenge_video')
+    process_video('harder_challenge_video')

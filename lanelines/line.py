@@ -20,6 +20,7 @@ class Line:
         self.image = None  # single channel image that contains line pixels
 
     def fit(self, lanex, laney, shape):
+        """Fit a line given valid pixels"""
         self.detected = True
         self.allx = lanex
         self.ally = laney
@@ -30,6 +31,7 @@ class Line:
         self.calculate_curvature()
 
     def calculate_curvature(self):
+        """Calculate the current line curvature"""
         y_eval = self.fit_y[-1]
         # Fit new polynomials to x,y in world space
         fit_curve = np.polyfit(self.fit_y * self.meters_per_pixels[1], self.fit_x * self.meters_per_pixels[0], 2)
@@ -38,17 +40,26 @@ class Line:
                / np.absolute(2 * fit_curve[0])
 
     def similar_curvature(self, line:  'Line', percent_tolerance=0.25):
+        """Verify if the lines have similar curvature with a tolerance of 25%"""
         return abs(self.radius_of_curvature - line.radius_of_curvature) < self.radius_of_curvature * percent_tolerance
 
     def similar_distance(self, line: 'Line', distance=700, distance_threshold=100):
+        """Verify similar distance to another line measured in three points along them"""
         distances = [abs(self.fit_x[int(y)] - line.fit_x[int(y)]) for y in np.linspace(0, self.fit_x.shape[0]-1, 3)]
         return np.all(np.abs(distance - np.array(distances)) < distance_threshold)
 
-    def similar_slope(self, line: 'Line', slope_limit=2):
-        slope = (self.fit_y[-1] - self.fit_y[0]) / (self.fit_x[-1] - self.fit_x[0])
-        slope_other = (line.fit_y[-1] - line.fit_y[0]) / (line.fit_x[-1] - line.fit_x[0])
-        return abs(slope - slope_other) < slope_limit
+    def similar_slope(self, line: 'Line', slope_limit=2, slope_threshold=0.1):
+        """Return true for slopes (in f(y)) within slope_limit difference or below a threshold"""
+        slope = (self.fit_x[-1] - self.fit_x[0]) / (self.fit_y[-1] - self.fit_y[0])
+        slope_other = (line.fit_x[-1] - line.fit_x[0]) / (line.fit_y[-1] - line.fit_y[0])
+        return abs(slope - slope_other) < slope_limit or \
+                  (abs(slope) > slope_limit and abs(slope_other) < slope_threshold)
 
     def is_parallel(self, line: 'Line'):
-        # return self.similar_distance(line)
-        return self.similar_curvature(line) and self.similar_slope(line) and self.similar_distance(line)
+        """
+        Combine similar_slope, similar_curvature and similar distance to verify if a line is roughly parallel
+        """
+        return (self.similar_slope(line) or self.similar_curvature(line)) and self.similar_distance(line)
+
+    def center_offset(self, line):
+        return (np.mean([self.fit_x[-1], line.fit_x[-1]]) - self.shape[1] / 2) * self.meters_per_pixels[0]

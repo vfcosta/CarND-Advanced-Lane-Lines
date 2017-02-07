@@ -15,6 +15,7 @@ class Detector:
         self.miss_limit = 10
 
     def detect(self, image, top_down):
+        """Detect lane lines given an image and its top down projection"""
         leftx_base = None
         rightx_base = None
         if self.previous_line_left is None and self.previous_line_right is None:
@@ -28,8 +29,7 @@ class Detector:
 
         # print("PARALLEL", self.miss, line_left.similar_curvature(line_right), line_left.similar_distance(line_right), line_left.similar_slope(line_right))
         line_left, line_right = self.smooth_lines(line_left, line_right)
-        offset = self.center_offset(image, line_left, line_right)
-        return line_left, line_right, offset
+        return line_left, line_right
 
     def smooth_lines(self, line_left, line_right):
         if line_left.is_parallel(line_right):
@@ -45,9 +45,6 @@ class Detector:
                 self.previous_line_right = None
                 self.previous_line_left = None
         return line_left, line_right
-
-    def center_offset(self, image, line_left, line_right):
-        return (np.mean([line_left.fit_x[-1], line_right.fit_x[-1]]) - image.shape[1]/2) * line_left.meters_per_pixels[0]
 
     def find_line(self, image, x, nwindows=9, draw_window=True, line=None):
         """Find lane line given a binarized warped image and a start position"""

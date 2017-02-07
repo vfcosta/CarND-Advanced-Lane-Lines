@@ -28,7 +28,8 @@ class Pipeline:
         # Combine the result with the original image
         return cv2.addWeighted(original_image, 1, newwarp, 0.3, 0)
 
-    def draw_info(self, image, line_left, line_right, offset):
+    def draw_info(self, image, line_left, line_right):
+        offset = line_left.center_offset(line_right)
         cv2.putText(image, "left curvature: %0.1fm" % line_left.radius_of_curvature, (0, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
         cv2.putText(image, "right curvature: %0.1fm" % line_right.radius_of_curvature, (0, 100),
@@ -46,15 +47,15 @@ class Pipeline:
         undistorted = self.camera.undistort(image)
         binarized = self.binarizer.binarize(undistorted)
         top_down = self.camera.to_top_down(binarized)
-        line_left, line_right, offset = self.detector.detect(image, top_down)
+        line_left, line_right = self.detector.detect(image, top_down)
 
         lines_original = self.draw_lane(top_down, image, line_left, line_right)
         lines_image = self.draw_top_down_lines(image, line_left, line_right)
-        self.draw_info(lines_original, line_left, line_right, offset)
+        self.draw_info(lines_original, line_left, line_right)
         if display_top_down:
             self.draw_top_down(lines_original, top_down, lines_image)
 
-        return lines_image, line_left, line_right, offset, lines_original, top_down
+        return lines_image, line_left, line_right, lines_original, top_down
 
     def draw_top_down_lines(self, image, line_left, line_right):
         lines_image = np.zeros_like(image)
