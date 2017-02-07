@@ -47,7 +47,7 @@ class Pipeline:
         undistorted = self.camera.undistort(image)
         binarized = self.binarizer.binarize(undistorted)
         top_down = self.camera.to_top_down(binarized)
-        line_left, line_right = self.detector.detect(image, top_down)
+        line_left, line_right = self.detector.detect(top_down)
 
         lines_original = self.draw_lane(top_down, image, line_left, line_right)
         lines_image = self.draw_top_down_lines(image, line_left, line_right)
@@ -55,7 +55,7 @@ class Pipeline:
         if display_top_down:
             self.draw_top_down(lines_original, top_down, lines_image)
 
-        return lines_image, line_left, line_right, lines_original, top_down
+        return lines_image, line_left, line_right, lines_original
 
     def draw_top_down_lines(self, image, line_left, line_right):
         lines_image = np.zeros_like(image)

@@ -62,4 +62,5 @@ class Line:
         return (self.similar_slope(line) or self.similar_curvature(line)) and self.similar_distance(line)
 
     def center_offset(self, line):
+        """Calculate offset from image center given other line"""
         return (np.mean([self.fit_x[-1], line.fit_x[-1]]) - self.shape[1] / 2) * self.meters_per_pixels[0]

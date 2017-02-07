@@ -14,7 +14,7 @@ class Detector:
         self.miss = 0
         self.miss_limit = 10
 
-    def detect(self, image, top_down):
+    def detect(self, top_down):
         """Detect lane lines given an image and its top down projection"""
         leftx_base = None
         rightx_base = None
@@ -27,7 +27,6 @@ class Detector:
         line_left = self.find_line(top_down, x=leftx_base, line=self.previous_line_left)
         line_right = self.find_line(top_down, x=rightx_base, line=self.previous_line_right)
 
-        # print("PARALLEL", self.miss, line_left.similar_curvature(line_right), line_left.similar_distance(line_right), line_left.similar_slope(line_right))
         line_left, line_right = self.smooth_lines(line_left, line_right)
         return line_left, line_right
 
