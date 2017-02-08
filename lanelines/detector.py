@@ -5,6 +5,12 @@ from lanelines.line import Line
 
 
 class Detector:
+    """Detect lane lines in image.
+
+    Uses Camera to apply distortion correction and perspective transformations.
+    Uses Binarizer to get a binarized image.
+    Uses Line to represent left and right lane lines.
+    """
 
     def __init__(self, camera):
         self.camera = camera
@@ -48,10 +54,11 @@ class Detector:
         return line
 
     def search_previous_line(self, image, line, margin, nonzerox, nonzeroy, draw_window):
+        """Search current line using previous detected line"""
         out_img = np.zeros_like(image)
         if draw_window:
-            line_window1 = np.array([np.transpose(np.vstack([line.fit_x - margin, line.fit_y]))])
-            line_window2 = np.array([np.flipud(np.transpose(np.vstack([line.fit_x + margin, line.fit_y])))])
+            line_window1 = np.array([np.transpose(np.vstack([line.best_x - margin, line.fit_y]))])
+            line_window2 = np.array([np.flipud(np.transpose(np.vstack([line.best_x + margin, line.fit_y])))])
             line_pts = np.hstack((line_window1, line_window2))
             cv2.fillPoly(out_img, np.int_([line_pts]), 80)
 
@@ -60,6 +67,7 @@ class Detector:
         return lane_inds, out_img
 
     def sliding_window(self, image, x, margin, min_pixels, nonzerox, nonzeroy, nwindows, draw_window):
+        """Search current line using sliding window method"""
         out_img = np.zeros_like(image)
         window_height = np.int(image.shape[0] / nwindows)
         lane_inds = []
@@ -75,10 +83,12 @@ class Detector:
         return np.concatenate(lane_inds), out_img
 
     def nonzero_in_window(self, left_top, right_bottom, nonzerox, nonzeroy):
+        """Find nonzero indexes in an image window"""
         return ((nonzeroy >= right_bottom[1]) & (nonzeroy < left_top[1]) &
                 (nonzerox >= left_top[0]) & (nonzerox < right_bottom[0])).nonzero()[0]
 
     def histogram(self, top_down_image, bin_width=None):
+        """Calculate image histogram for the bottom half of an image"""
         hist = np.mean(top_down_image[top_down_image.shape[0] // 2:, :], axis=0)
         if bin_width:
             return np.histogram(range(hist.shape[0]), bins=hist.shape[0]//bin_width, weights=hist)[0], top_down_image

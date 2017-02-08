@@ -14,6 +14,7 @@ calibration_dir = os.path.join(base_dir, '..', 'camera_cal')
 
 
 def calibrate_camera():
+    """Execute camera calibration."""
     if not os.path.exists(os.path.join(base_dir, "camera.p")):
         camera = Camera()
         camera.calibrate()
@@ -24,6 +25,7 @@ def calibrate_camera():
 
 
 def detect_perspective(camera):
+    """Detect camera perspective."""
     if camera.perspective_matrix is not None:
         return
     print("detect perspective")
@@ -34,6 +36,7 @@ def detect_perspective(camera):
 
 
 def undistort_sample_images(camera):
+    """Generate sample images for distortion correction from camera."""
     for image_name, corners in [("calibration1", (9, 5)), ("calibration2", (8, 6)), ("calibration4", (6, 5))]:
         print("undistort", image_name)
         image = cv2.imread(os.path.join(calibration_dir, image_name+".jpg"))
@@ -44,6 +47,7 @@ def undistort_sample_images(camera):
 
 
 def top_down_sample_images(camera):
+    """Generate sample images for top down transformation."""
     for i, image_name in enumerate(["straight_lines1", "test2"]):
         print("warp", image_name)
         image = cv2.imread(os.path.join(test_dir, image_name+".jpg"))
@@ -57,6 +61,7 @@ def top_down_sample_images(camera):
 
 
 def binarize_sample_images(camera, binarizer):
+    """Generate sample images for binarization."""
     for image_name in os.listdir(test_dir):
         image_name = image_name.replace('.jpg', '')
         image = cv2.imread(os.path.join(test_dir, image_name+'.jpg'))
@@ -68,6 +73,7 @@ def binarize_sample_images(camera, binarizer):
 
 
 def generate_histogram(detector, camera, binarizer):
+    """Generate sample histograms."""
     for i, image_name in enumerate(["straight_lines1", "test2"]):
         print("histogram", image_name)
         image = cv2.imread(os.path.join(test_dir, image_name+".jpg"))
@@ -81,6 +87,7 @@ def generate_histogram(detector, camera, binarizer):
 
 
 def detect_lane_lines():
+    """Generate sample images for lane lines detection."""
     for i, image_name in enumerate(os.listdir(test_dir)):
         print("detect lane lines", image_name)
         image_name = image_name.replace('.jpg', '')
@@ -95,6 +102,7 @@ def detect_lane_lines():
 
 
 def execute():
+    """Execute all steps on sample images"""
     camera = calibrate_camera()
     binarizer = Binarizer()
     detector = Detector(camera)

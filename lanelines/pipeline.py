@@ -6,6 +6,7 @@ from lanelines.detector import Detector
 
 
 class Pipeline:
+    """Define a pipeline for lane lines detection."""
 
     def __init__(self):
         self.camera = Camera.load()
@@ -13,6 +14,7 @@ class Pipeline:
         self.detector = Detector(self.camera)
 
     def draw_lane(self, warped_image, original_image, line_left, line_right):
+        """Draw the detected lane."""
         warp_zero = np.zeros_like(warped_image).astype(np.uint8)
         color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
 
@@ -29,6 +31,7 @@ class Pipeline:
         return cv2.addWeighted(original_image, 1, newwarp, 0.3, 0)
 
     def draw_info(self, image, line_left, line_right):
+        """Display center offset, left and right curvature on top of image."""
         offset = line_left.center_offset(line_right)
         cv2.putText(image, "left curvature: %0.1fm" % line_left.radius_of_curvature, (0, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
@@ -38,12 +41,21 @@ class Pipeline:
                     (255, 255, 255), 3)
 
     def draw_top_down(self, image, top_down, lines_image, w=320, h=180):
+        """Draw the top down image on the top right corner of the image."""
         top_down_resized = cv2.resize(top_down, (w, h))
         lines_resized = cv2.resize(lines_image, (w, h))
         top_down_color = np.uint8(np.dstack((top_down_resized, top_down_resized, top_down_resized)) * 255)
         image[0:h, image.shape[1]-w:] = cv2.addWeighted(top_down_color, 0.5, lines_resized, 1, 0)
 
     def process_image(self, image, display_top_down=True):
+        """Process the input image.
+
+        Returns:
+            lines_image: top down image with detected lines
+            line_left: the detected left line
+            line_right: the detected right line
+            lines_original: the original image with lines and info drawn on top
+        """
         undistorted = self.camera.undistort(image)
         binarized = self.binarizer.binarize(undistorted)
         top_down = self.camera.to_top_down(binarized)
