@@ -42,11 +42,11 @@ class Detector:
         nonzerox = np.array(nonzero[1])
 
         if line.detected:
-            lane_inds, out_img = self.search_previous_line(image, line, margin=80, nonzerox=nonzerox,
+            lane_inds, out_img = self.search_previous_line(image, line, margin=100, nonzerox=nonzerox,
                                                            nonzeroy=nonzeroy, draw_window=draw_window)
         else:
-            lane_inds, out_img = self.sliding_window(image, x, margin=80, min_pixels=50, nonzerox=nonzerox,
-                                                     nonzeroy=nonzeroy, nwindows=7, draw_window=draw_window)
+            lane_inds, out_img = self.sliding_window(image, x, margin=100, min_pixels=50, nonzerox=nonzerox,
+                                                     nonzeroy=nonzeroy, nwindows=9, draw_window=draw_window)
 
         if lane_inds.shape[0] > 0:
             out_img[nonzeroy[lane_inds], nonzerox[lane_inds]] = 255

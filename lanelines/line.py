@@ -22,6 +22,8 @@ class Line:
 
     def fit(self, lanex, laney, image):
         """Fit a line given valid pixels"""
+        if laney.shape[0] == 0 or lanex.shape[0] == 0:
+            return
         self.image = image
         self.detected = True
         self.current_fit = np.polyfit(laney, lanex, 2)
