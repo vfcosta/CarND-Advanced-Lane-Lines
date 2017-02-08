@@ -54,7 +54,7 @@ class Camera:
         pickle.dump(vars(self), open(filename, "wb"))
 
     @classmethod
-    def load(cls, filename=os.path.join(base_dir, "camera.p")):
+    def load(cls, filename="camera.p"):
         camera = Camera()
         attributes = pickle.load(open(filename, "rb"))
         for k, v in attributes.items():

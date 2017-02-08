@@ -98,11 +98,11 @@ def execute():
     camera = calibrate_camera()
     binarizer = Binarizer()
     detector = Detector(camera)
-    # undistort_sample_images(camera)
-    # detect_perspective(camera)
-    # top_down_sample_images(camera)
-    # binarize_sample_images(camera, binarizer)
-    # generate_histogram(detector, camera, binarizer)
+    undistort_sample_images(camera)
+    detect_perspective(camera)
+    top_down_sample_images(camera)
+    binarize_sample_images(camera, binarizer)
+    generate_histogram(detector, camera, binarizer)
     detect_lane_lines()
 
 

@@ -29,23 +29,22 @@ class Detector:
         self.line_right.validate(parallel)
         return self.line_left, self.line_right
 
-    def find_line(self, image, x, nwindows=9, draw_window=True, line=None):
+    def find_line(self, image, x, draw_window=True, line=None):
         """Find lane line given a binarized warped image and a start position"""
-        window_height = np.int(image.shape[0] / nwindows)
         nonzero = image.nonzero()
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
 
         if line.detected:
-            lane_inds, out_img = self.search_previous_line(image, line, margin=100, nonzerox=nonzerox,
+            lane_inds, out_img = self.search_previous_line(image, line, margin=80, nonzerox=nonzerox,
                                                            nonzeroy=nonzeroy, draw_window=draw_window)
         else:
-            lane_inds, out_img = self.sliding_window(image, x, margin=100, min_pixels=50, nonzerox=nonzerox,
-                                                     nonzeroy=nonzeroy, nwindows=nwindows,
-                                                     window_height=window_height, draw_window=draw_window)
+            lane_inds, out_img = self.sliding_window(image, x, margin=80, min_pixels=50, nonzerox=nonzerox,
+                                                     nonzeroy=nonzeroy, nwindows=7, draw_window=draw_window)
 
-        out_img[nonzeroy[lane_inds], nonzerox[lane_inds]] = 255
-        line.fit(nonzerox[lane_inds], nonzeroy[lane_inds], out_img)
+        if lane_inds.shape[0] > 0:
+            out_img[nonzeroy[lane_inds], nonzerox[lane_inds]] = 255
+            line.fit(nonzerox[lane_inds], nonzeroy[lane_inds], out_img)
         return line
 
     def search_previous_line(self, image, line, margin, nonzerox, nonzeroy, draw_window):
@@ -60,8 +59,9 @@ class Detector:
                      (nonzerox < (line.current_fit[0] * (nonzeroy ** 2) + line.current_fit[1] * nonzeroy + line.current_fit[2] + margin)))
         return lane_inds, out_img
 
-    def sliding_window(self, image, x, margin, min_pixels, nonzerox, nonzeroy, nwindows, window_height, draw_window):
+    def sliding_window(self, image, x, margin, min_pixels, nonzerox, nonzeroy, nwindows, draw_window):
         out_img = np.zeros_like(image)
+        window_height = np.int(image.shape[0] / nwindows)
         lane_inds = []
         for window in range(nwindows):
             left_top = (x - margin, image.shape[0] - window * window_height)

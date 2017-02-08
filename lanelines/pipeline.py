@@ -31,9 +31,9 @@ class Pipeline:
     def draw_info(self, image, line_left, line_right):
         offset = line_left.center_offset(line_right)
         cv2.putText(image, "left curvature: %0.1fm" % line_left.radius_of_curvature, (0, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
         cv2.putText(image, "right curvature: %0.1fm" % line_right.radius_of_curvature, (0, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255, 255, 255), 3)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
         cv2.putText(image, "center offset: %0.3fm" % offset, (0, 160), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
                     (255, 255, 255), 3)
 
