@@ -12,6 +12,17 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
+###Project Organization
+All source files below have been placed in `lanelines` folder:
+
+- [`camera.py`](lanelines/camera.py): Define Camera class to detect and apply distortion correction and perspective transformation.
+- [`binarizer.py`](lanelines/binarizer.py): Define Binarizer class to binarize an image using a combination of strategies. 
+- [`detector.py`](lanelines/detector.py): Define Detector class responsible to detect lane lines in an input image. 
+- [`line.py`](lanelines/line.py): Class to represent one line (right or left) detected in image frames
+- [`pipeline.py`](lanelines/pipeline.py): Class that define an execution pipeline for lane lines detection.
+- [`process.py`](lanelines/process.py): Execute pipeline steps on sample images.
+- [`process_video.py`](lanelines/process_video.py): Process video frames using the lane finding pipeline.
+
 ###Camera Calibration
 
 The code for this step is contained in the *Camera* class from [camera.py](lanelines/camera.py).
@@ -24,18 +35,18 @@ The first detected pair of corners was stored in `imgpoints` and the real object
 
 Corner detection examples:
 
-<img src="output_images/calibration1_chessboard.jpg" width="250">
-<img src="output_images/calibration2_chessboard.jpg" width="250">
-<img src="output_images/calibration4_chessboard.jpg" width="250">
+<img src="output_images/calibration1_chessboard.jpg" width="280">
+<img src="output_images/calibration2_chessboard.jpg" width="280">
+<img src="output_images/calibration4_chessboard.jpg" width="280">
 
 The parameters obtained in calibration was used in `undistort` method ([camera.py#L33](lanelines/camera.py#L33)).
 This method calls `cv2.undistort()` function to get an undistorted image.
 
 Distortion correction examples:
 
-<img src="output_images/calibration1_undistorted.jpg" width="250">
-<img src="output_images/calibration2_undistorted.jpg" width="250">
-<img src="output_images/calibration4_undistorted.jpg" width="250">
+<img src="output_images/calibration1_undistorted.jpg" width="280">
+<img src="output_images/calibration2_undistorted.jpg" width="280">
+<img src="output_images/calibration4_undistorted.jpg" width="280">
 
 
 ###Pipeline (single images)
@@ -45,15 +56,15 @@ To demonstrate this step, I will describe how I apply the distortion correction 
 
 Distorted images:
 
-<img src="test_images/straight_lines1.jpg" width="250">
-<img src="test_images/test2.jpg" width="250">
-<img src="test_images/test1.jpg" width="250">
+<img src="test_images/straight_lines1.jpg" width="280">
+<img src="test_images/test2.jpg" width="280">
+<img src="test_images/test1.jpg" width="280">
 
 Distortion correction examples:
 
-<img src="output_images/straight_lines1_undistored.jpg" width="250">
-<img src="output_images/test2_undistored.jpg" width="250">
-<img src="output_images/test1_undistored.jpg" width="250">
+<img src="output_images/straight_lines1_undistored.jpg" width="280">
+<img src="output_images/test2_undistored.jpg" width="280">
+<img src="output_images/test1_undistored.jpg" width="280">
 
 
 ####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
@@ -61,9 +72,9 @@ I used a combination of color and gradient thresholds to generate a binary image
 
 Binarized examples:
 
-<img src="output_images/straight_lines1_binarized.jpg" width="250">
-<img src="output_images/straight_lines2_binarized.jpg" width="250">
-<img src="output_images/test4_binarized.jpg" width="250">
+<img src="output_images/straight_lines1_binarized.jpg" width="280">
+<img src="output_images/straight_lines2_binarized.jpg" width="280">
+<img src="output_images/test4_binarized.jpg" width="280">
 
 ####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
@@ -93,10 +104,15 @@ This resulted in the following source and destination points:
 
 I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
 
+Perspective images:
+
+<img src="output_images/straight_lines1_perspective.jpg" width="400">
+<img src="test_images/test2.jpg" width="400">
+
 Top down examples:
 
-<img src="output_images/straight_lines1_top_down.jpg" width="250">
-<img src="output_images/test2_top_down.jpg" width="250">
+<img src="output_images/straight_lines1_top_down.jpg" width="400">
+<img src="output_images/test2_top_down.jpg" width="400">
 
 ####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
@@ -114,13 +130,13 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 Detected lines examples:
 
-<img src="output_images/straight_lines1_lines_perspective.jpg" width="250">
-<img src="output_images/straight_lines2_lines_perspective.jpg" width="250">
-<img src="output_images/test4_lines_perspective.jpg" width="250">
+<img src="output_images/straight_lines1_lines_perspective.jpg" width="280">
+<img src="output_images/straight_lines2_lines_perspective.jpg" width="280">
+<img src="output_images/test4_lines_perspective.jpg" width="280">
 
-<img src="output_images/test3_lines_perspective.jpg" width="250">
-<img src="output_images/test5_lines_perspective.jpg" width="250">
-<img src="output_images/test6_lines_perspective.jpg" width="250">
+<img src="output_images/test3_lines_perspective.jpg" width="280">
+<img src="output_images/test5_lines_perspective.jpg" width="280">
+<img src="output_images/test6_lines_perspective.jpg" width="280">
 
 
 ---

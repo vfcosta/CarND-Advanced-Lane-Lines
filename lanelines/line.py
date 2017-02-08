@@ -3,6 +3,7 @@ from collections import deque
 
 
 class Line:
+    """Represent one line (right or left) detected in image frames"""
 
     def __init__(self):
         self.detected = False  # was the line detected in the last iteration?

@@ -13,7 +13,7 @@ def process_frame(image):
 
 
 def process_video(filename):
-    """Process a video using the lane finding pipeline"""
+    """Process a video using the lane finding pipeline."""
     white_output = os.path.join(base_dir, '..', filename+'_processed.mp4')
     clip1 = VideoFileClip(os.path.join(base_dir, '..', filename+'.mp4'))
     white_clip = clip1.fl_image(process_frame)
