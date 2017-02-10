@@ -1,17 +1,25 @@
 import cv2
 import numpy as np
+import os.path
 from lanelines.binarizer import Binarizer
 from lanelines.camera import Camera
 from lanelines.detector import Detector
 
+base_dir = os.path.dirname(__file__)
+output_dir = os.path.join(base_dir, '..', 'project_video_images')
 
 class Pipeline:
     """Define a pipeline for lane lines detection."""
 
-    def __init__(self):
+    def __init__(self, display_frame=False, frames_to_save=[]):
         self.camera = Camera.load()
         self.binarizer = Binarizer()
         self.detector = Detector(self.camera)
+        self.frame = 0
+        self.display_frame = display_frame
+        self.frames_to_save = frames_to_save
+        # self.frames_to_save = [563, 569, 578, 586, 596, 607, 615, 980, 999, 569, 1018, 1036]
+
 
     def draw_lane(self, warped_image, original_image, line_left, line_right):
         """Draw the detected lane."""
@@ -34,11 +42,13 @@ class Pipeline:
         """Display center offset, left and right curvature on top of image."""
         offset = line_left.center_offset(line_right)
         cv2.putText(image, "left curvature: %0.1fm" % line_left.radius_of_curvature, (0, 40),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 2)
         cv2.putText(image, "right curvature: %0.1fm" % line_right.radius_of_curvature, (0, 100),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 3)
-        cv2.putText(image, "center offset: %0.3fm" % offset, (0, 160), cv2.FONT_HERSHEY_SIMPLEX, 1.5,
-                    (255, 255, 255), 3)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, (255, 255, 255), 2)
+        cv2.putText(image, "center offset: %0.3fm" % offset, (0, 160), cv2.FONT_HERSHEY_SIMPLEX, 1.3,
+                    (255, 255, 255), 2)
+        if self.display_frame:
+            cv2.putText(image, "frame: %d" % self.frame, (0, 220), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (255, 255, 255), 2)
 
     def draw_top_down(self, image, top_down, lines_image, w=320, h=180):
         """Draw the top down image on the top right corner of the image."""
@@ -56,6 +66,10 @@ class Pipeline:
             line_right: the detected right line
             lines_original: the original image with lines and info drawn on top
         """
+        self.frame += 1
+        if self.frame in self.frames_to_save:
+            cv2.imwrite(os.path.join(output_dir, "frame_" + str(self.frame) + ".jpg"), image)
+
         undistorted = self.camera.undistort(image)
         binarized = self.binarizer.binarize(undistorted)
         top_down = self.camera.to_top_down(binarized)

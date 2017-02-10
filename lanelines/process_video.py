@@ -1,6 +1,7 @@
 from moviepy.editor import VideoFileClip
-from lanelines.pipeline import Pipeline
 import os.path
+import cv2
+from lanelines.pipeline import Pipeline
 
 base_dir = os.path.dirname(__file__)
 pipeline = Pipeline()
@@ -8,8 +9,9 @@ pipeline = Pipeline()
 
 def process_frame(image):
     """Use pipeline to process a single image frame and return an image with lane lines drawn on top"""
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # convert from RGB to BGR
     lines_image, line_left, line_right, lines_original = pipeline.process_image(image)
-    return lines_original
+    return cv2.cvtColor(lines_original, cv2.COLOR_BGR2RGB)
 
 
 def process_video(filename):
