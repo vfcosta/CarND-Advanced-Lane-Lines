@@ -24,6 +24,11 @@ class Binarizer:
         s_binary = self.apply_threshold(s_channel, thresh=(170, 255))
         combined[(s_binary == 1)] = 1
 
+        # Use equalized gray scale with a high threshold to complement the binarized image
+        gray = cv2.equalizeHist(gray)
+        g_binary = self.apply_threshold(gray, thresh=(250, 255))
+        combined[(g_binary == 1)] = 1
+
         return combined
 
     def abs_sobel_thresh(self, img, orient='x', sobel_kernel=3, thresh=(0, 255)):
