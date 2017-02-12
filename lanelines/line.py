@@ -38,7 +38,7 @@ class Line:
         """Calculate the current line curvature"""
         y_eval = self.fit_y[-1]
         # Fit new polynomials to x,y in world space
-        fit_curve = np.polyfit(self.fit_y * self.meters_per_pixels[1], self.fit_x * self.meters_per_pixels[0], 2)
+        fit_curve = np.polyfit(self.fit_y * self.meters_per_pixels[1], self.best_x * self.meters_per_pixels[0], 2)
         # Calculate the new radii of curvature
         self.radius_of_curvature = ((1 + (2 * fit_curve[0] * y_eval * self.meters_per_pixels[1] + fit_curve[1]) ** 2) ** 1.5)\
                / np.absolute(2 * fit_curve[0])
@@ -67,7 +67,7 @@ class Line:
 
     def center_offset(self, line):
         """Calculate offset from image center given other line"""
-        return (np.mean([self.fit_x[-1], line.fit_x[-1]]) - self.image.shape[1] / 2) * self.meters_per_pixels[0]
+        return (np.mean([self.best_x[-1], line.best_x[-1]]) - self.image.shape[1] / 2) * self.meters_per_pixels[0]
 
     def validate(self, valid):
         """Validate last detected line and store it when valid and reject when invalid"""
