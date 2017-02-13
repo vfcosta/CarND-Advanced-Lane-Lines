@@ -96,7 +96,7 @@ def detect_lane_lines():
         lines_image, line_left, line_right, lines_original = pipeline.process_image(image)
         cv2.imwrite(os.path.join(output_dir, image_name + "_lines.jpg"), lines_image)
         cv2.imwrite(os.path.join(output_dir, image_name + "_lines_perspective.jpg"), lines_original)
-        if i == 0:
+        if image_name == 'straight_lines1':
             lines_image, _, _, _ = pipeline.process_image(image)
             cv2.imwrite(os.path.join(output_dir, image_name + "_lines_previous.jpg"), lines_image)
 
