@@ -13,7 +13,7 @@ class Line:
         self.radius_of_curvature = None  # radius of curvature of the line in real world units (meters)
         # self.line_base_pos = None  # distance in meters of vehicle center from the line
         # self.diffs = np.array([0, 0, 0], dtype='float')  # difference in fit coefficients between last and new fits
-        self.all_x = deque(maxlen=10)  # x values for all fitted lines
+        self.all_x = deque(maxlen=20)  # x values for all fitted lines
         self.fit_x = None  # x values for last fitted line
         self.fit_y = None  # y values for last fitted line
         self.meters_per_pixels = (3.7 / 700, 30 / 720)  # meters per pixel in x, y

@@ -18,7 +18,7 @@ All source files below have been placed in `lanelines` folder:
 - [`camera.py`](lanelines/camera.py): Define Camera class to detect and apply distortion correction and perspective transformation.
 - [`binarizer.py`](lanelines/binarizer.py): Define Binarizer class to binarize an image using a combination of strategies. 
 - [`detector.py`](lanelines/detector.py): Define Detector class responsible to detect lane lines in an input image. 
-- [`line.py`](lanelines/line.py): Class to represent one line (right or left) detected in image frames
+- [`line.py`](lanelines/line.py): Class to represent one line (right or left) detected in image frames.
 - [`pipeline.py`](lanelines/pipeline.py): Class that define an execution pipeline for lane lines detection.
 - [`process.py`](lanelines/process.py): Execute pipeline steps on sample images.
 - [`process_video.py`](lanelines/process_video.py): Process video frames using the lane finding pipeline.
@@ -26,7 +26,6 @@ All source files below have been placed in `lanelines` folder:
 ###Camera Calibration
 
 The code for this step is contained in the *Camera* class from [camera.py](lanelines/camera.py).
-
 The method `calibrate` ([camera.py#L24](lanelines/camera.py#L24)) uses chessboard images from `camera_cal` folder to detect corners and calculate the distortion attributes using `cv2.calibrateCamera`.
 
 These images have 9 by 6 corners but in some images not all are visible.
@@ -51,8 +50,9 @@ Distortion correction examples:
 
 ###Pipeline (single images)
 
-####1. Provide an example of a distortion-corrected image.
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
+####1. Distortion Correction
+The same `undistort` method described above ([camera.py#L33](lanelines/camera.py#L33)) was applied to images as a previous step in the lane detection pipeline.
+See below three examples of lane images and its respective undistorted images.
 
 Distorted images:
 
@@ -67,8 +67,34 @@ Distortion correction examples:
 <img src="output_images/test1_undistored.jpg" width="280">
 
 
-####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+####2.Image Binarization 
+The `Binarizer` class is responsible for this step.
+The main method for image binarization is `binarize` ([binarizer.py#L8](lanelines/binarizer.py#L8)).
+This method uses a combination of strategies to get a binarized image.
+ 
+First, the image was converted to grayscale and HLS colorspaces.
+On the HLS, the most significant results was obtained with the saturation channel, so it was used in the next step.
+For both grayscale and saturation channel, three edge detection strategies was used:
+- Sobel Operator: ([binarizer.py#L34](lanelines/binarizer.py#L34))
+- Magnitude of the Gradient: ([binarizer.py#L41](lanelines/binarizer.py#L41))
+- Direction of the Gradient: ([binarizer.py#L49](lanelines/binarizer.py#L49))
+
+Those strategies were combined with the following code ([binarizer.py#L21](lanelines/binarizer.py#L21)):
+```
+combined[(gradx == 1) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+```
+
+The binarization step was complemented with a color threshold strategy, using the saturation channel from HLS.
+
+An equalized version of the grayscale channel was tried but it introduces too much noise to the binarized image and was discarded. 
+
+See below examples of color images and its respective images binarized.
+
+Color images examples:
+
+<img src="test_images/straight_lines1.jpg" width="280">
+<img src="test_images/straight_lines2.jpg" width="280">
+<img src="test_images/test4.jpg" width="280">
 
 Binarized examples:
 
@@ -76,57 +102,83 @@ Binarized examples:
 <img src="output_images/straight_lines2_binarized.jpg" width="280">
 <img src="output_images/test4_binarized.jpg" width="280">
 
-####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+####3. Perspective Transformation
+The same `Camera` class used in distort correction was used to perform perspective transformation.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+A detection step has to be performed before apply perspective transformation on images.
+For that, an input image and four points has to be provided to the `detect_perspective` method ([camera.py#L37](lanelines/camera.py#L37)).
+This method automatically calculates the destination points, with the assumption that source points represent a quadrangle (required by the opencv `cv2.getPerspectiveTransform` method). 
 
-```
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+This method was called in [process.py#L27](lanelines/process.py#L27)) when processing the sample images.
 
-```
-This resulted in the following source and destination points:
-
-| Source        | Destination   | 
-|:-------------:|:-------------:| 
-| 585, 460      | 320, 0        | 
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
-
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
-
-Perspective images:
+See bellow the image and the points used to get the perspective transformation matrix:
 
 <img src="output_images/straight_lines1_perspective.jpg" width="400">
-<img src="test_images/test2.jpg" width="400">
 
-Top down examples:
+All parameters needed to apply perspective transformation in the future is saved when the `save` ([camera.py#L59](lanelines/camera.py#L59)) method from `Camera` is called.
+So a call to `load` will reconstruct a `Camera` object restoring the values obtained in perspective detection (and also in the calibration step). 
+
+The `to_top_down` method ([camera.py#L48](lanelines/camera.py#L48)) apply a warp transformation to an input image using the matrix obtained in the process described above.
+As a result, a top down representation of the image is generated.
+
+This is the same image used in perspective detection transformed to top down (birds-eye) view:
 
 <img src="output_images/straight_lines1_top_down.jpg" width="400">
+
+See below other example of perspective transformation:
+
+<img src="test_images/test2.jpg" width="400">
 <img src="output_images/test2_top_down.jpg" width="400">
 
-####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+####4. Lane Lines Detection
+The lane lines detection was implemented in the `Detection` class.
+The main method for this class is `detect` ([detect.py#L21](lanelines/detect.py#L21)).
+This method expects a top down image and decide between two procedures to detect indexes for lane lines.
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The first procedure is used when no previous line was detected and is defined by the `sliding_window` method ([detect.py#L69](lanelines/detect.py#L69)).
+It uses an sliding window algorithm to find pixels that may belong to a single lane line.
 
-![alt text][image5]
+This method has to be called twice, one for the right and other for the left line.
+It expects a start position for `x` to bootstrap the sliding window algorithm.
+This position is obtained using the `histogram` ([detect.py#L90](lanelines/detect.py#L90)).
+The max of the first half of the histogram is used for left line and the max for the other line is used for right line. 
 
-####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+The second procedure, defined by `search_previous_line` method ([detect.py#L56](lanelines/detect.py#L56)), uses previous line information to look for lane lines in the current image.
 
-I did this in lines # through # in my code in `my_other_file.py`
+See bellow an example of a top down image (with the lane lines and windows used in detection drown) and its respective histogram.
 
-####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
+<img src="output_images/straight_lines1_lines.jpg" width="400">
+<img src="output_images/straight_lines1_histogram.jpg" width="400">
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+Another example:
+
+<img src="output_images/test2_lines.jpg" width="400">
+<img src="output_images/test2_histogram.jpg" width="400">
+
+An example using previous line:
+
+<img src="output_images/straight_lines1_lines_previous.jpg" width="400">
+
+The lane line indexes is provided to the `Line` class.
+This class represent a single lane line and stores properties from it.
+The method `fit` ([line.py#L24](lanelines/line.py#L24)) uses these properties to fit a polynomial and stores it to be used in other steps.
+
+The `Line` class keep an array of the last 20 fitted polynomial and return an average between them, so the calculated polynomial for an image is smoothed between frames in a video.
+
+A polynomial is only taken in consideration when the line, given its pair (a left or right line), has similar curvature, slope and distance ([line.py#L62](lanelines/line.py#L62)).
+
+####5. Radius of Curvature and Position of the Vehicle
+The `Line` class was also used to calculate radius of curvature and the position of the vehicle with respect to center.
+
+The method `calculate_curvature` ([line.py#L37](lanelines/line.py#L37)) uses the average polynomial to calculate the radius of curvature for the current line.
+
+The method `center_offset` ([line.py#L68](lanelines/line.py#L68)) calculates the offset of the vehicle with respect to center using the average polynomial of the current line.
+
+Both methods use an array `meters_per_pixels` that defines a conversion from pixels to real world meters in `x` and `y`. 
+
+####6. Final Result
+
+The `Pipeline` class is responsible of tie all steps above together and execute the full lane line detection procedure through the method `process_image` ([pipeline.py#L60](lanelines/pipeline.py#L60)).
 
 Detected lines examples:
 
@@ -143,9 +195,9 @@ Detected lines examples:
 
 ###Pipeline (video)
 
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+####1. Final Video Output.
 
-Here's a [link to my video result](./project_video.mp4?raw=true)
+Here's a [link to my video result](./project_video_processed.mp4?raw=true)
 
 ---
 
