@@ -75,9 +75,9 @@ This method uses a combination of strategies to get a binarized image.
 First, the image was converted to grayscale and HLS color spaces.
 On the HLS, the most significant results was obtained with the saturation channel, so it was used in the next step.
 For both grayscale and saturation channel, three edge detection strategies were used:
-- Sobel Operator: ([binarizer.py#L34](lanelines/binarizer.py#L34))
-- Magnitude of the Gradient: ([binarizer.py#L41](lanelines/binarizer.py#L41))
-- Direction of the Gradient: ([binarizer.py#L49](lanelines/binarizer.py#L49))
+- Sobel Operator: ([binarizer.py#L27](lanelines/binarizer.py#L27))
+- Magnitude of the Gradient: ([binarizer.py#L34](lanelines/binarizer.py#L34))
+- Direction of the Gradient: ([binarizer.py#L42](lanelines/binarizer.py#L42))
 
 Those strategies were combined with the following code ([binarizer.py#L21](lanelines/binarizer.py#L21)):
 ```
@@ -116,7 +116,7 @@ See below the image and the points used to get the perspective transformation ma
 <img src="output_images/straight_lines1_perspective.jpg" width="400">
 
 All parameters needed to apply perspective transformation in the future is saved when the [`save`](lanelines/camera.py#L59) method from `Camera` is called.
-So a call to `load` will reconstruct a `Camera` object restoring the values obtained in perspective detection (and also in the calibration step). 
+So a call to [`load`](lanelines/camera.py#L64) will reconstruct a `Camera` object restoring the values obtained in perspective detection (and also in the calibration step). 
 
 The [`to_top_down`](lanelines/camera.py#L48) method apply a warp transformation to an input image using the matrix obtained in the process described above.
 As a result, a top down representation of the image is generated.
@@ -132,18 +132,18 @@ See below another example of perspective transformation:
 
 ####4. Lane Lines Detection
 The lane lines detection was implemented in the `Detection` class.
-The main method for this class is [`detect`](lanelines/detect.py#L21).
+The main method for this class is [`detect`](lanelines/detector.py#L21).
 This method expects a top down image and decide between two procedures to detect indexes for lane lines.
 
-The first procedure is used when no previous line was detected and is defined by the [`sliding_window`](lanelines/detect.py#L69) method.
+The first procedure is used when no previous line was detected and is defined by the [`sliding_window`](lanelines/detector.py#L69) method.
 It uses a sliding window algorithm to find pixels that may belong to a single lane line.
 
 This method has to be called twice, one for the right and another for the left line.
 It expects a start position for `x` to bootstrap the sliding window algorithm.
-This position is obtained using the [`histogram`](lanelines/detect.py#L90).
+This position is obtained using the [`histogram`](lanelines/detector.py#L90).
 The max of the first half of the histogram is used for left line and the max for the other line is used for right line. 
 
-The second procedure, defined by [`search_previous_line`](lanelines/detect.py#L56) method, uses previous line information to look for lane lines in the current image.
+The second procedure, defined by [`search_previous_line`](lanelines/detector.py#L56) method, uses previous line information to look for lane lines in the current image.
 
 See below an example of a top down image (with the lane lines and windows used in detection drown) and its respective histogram.
 
@@ -155,7 +155,7 @@ Another example:
 <img src="output_images/test2_lines.jpg" width="400">
 <img src="output_images/test2_histogram.jpg" width="400" height="200">
 
-An example using previous line:
+An example using previous line information when searching for line:
 
 <img src="output_images/straight_lines1_lines_previous.jpg" width="400">
 
