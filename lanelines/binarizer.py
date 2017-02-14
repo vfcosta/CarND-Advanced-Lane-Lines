@@ -5,7 +5,7 @@ import numpy as np
 class Binarizer:
     """Binarize an image using a combination of strategies."""
 
-    def binarize(self, image, sobel_kernel=9):
+    def binarize(self, image, sobel_kernel=5):
         """Binarize image."""
         combined = np.zeros(image.shape[:2])
 
@@ -20,7 +20,6 @@ class Binarizer:
             dir_binary = self.dir_threshold(channel, sobel_kernel=sobel_kernel, thresh=(0.7, 1.3))
             combined[(gradx == 1) | ((mag_binary == 1) & (dir_binary == 1))] = 1
 
-        # Use the pure s channel with a threshold to complement the binarized image
         s_binary = self.apply_threshold(s_channel, thresh=(170, 255))
         combined[(s_binary == 1)] = 1
         return combined
